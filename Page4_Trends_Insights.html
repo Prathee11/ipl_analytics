@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IPL Analytics — Trends & Strategic Insights</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy-deep:    #060f2a;
+      --navy-mid:     #0d1e45;
+      --navy-card:    #111f4a;
+      --navy-hover:   #162455;
+      --orange:       #ff6b35;
+      --orange-glow:  rgba(255,107,53,0.18);
+      --gold:         #ffd700;
+      --cyan:         #00d9ff;
+      --green:        #00ff88;
+      --red:          #ff3366;
+      --text-bright:  #f0f4ff;
+      --text-mid:     #c8d4ee;
+      --text-muted:   #7a90bb;
+      --border:       rgba(255,107,53,0.22);
+      --border-light: rgba(255,107,53,0.10);
+      --grid-color:   rgba(139,157,195,0.12);
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: radial-gradient(ellipse at 70% 0%, #0d2060 0%, var(--navy-deep) 55%),
+                  linear-gradient(160deg, #060f2a 0%, #0a1835 100%);
+      background-attachment: fixed;
+      font-family: 'Rajdhani', sans-serif;
+      color: var(--text-bright);
+      min-height: 100vh;
+      padding: 40px 32px 60px;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0;
+    }
+    .wrap { position:relative; max-width:1560px; margin:0 auto; z-index:1; }
+
+    /* ── HEADER ── */
+    .header {
+      text-align:center; padding-bottom:36px; margin-bottom:48px;
+      border-bottom:2px solid var(--border); position:relative;
+    }
+    .header::after {
+      content:''; display:block; width:120px; height:3px;
+      background:linear-gradient(90deg,var(--orange),var(--gold));
+      margin:16px auto 0; border-radius:2px;
+    }
+    .header-eyebrow {
+      font-family:'JetBrains Mono',monospace; font-size:11px;
+      letter-spacing:4px; color:var(--orange); text-transform:uppercase; margin-bottom:14px;
+    }
+    .header h1 {
+      font-family:'Orbitron',sans-serif; font-size:clamp(28px,4vw,52px); font-weight:900;
+      background:linear-gradient(100deg,var(--orange) 0%,var(--gold) 60%,#fff 100%);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      letter-spacing:3px; line-height:1.1;
+    }
+    .header p { margin-top:12px; color:var(--text-mid); font-size:17px; font-weight:500; }
+
+    /* ── KPI ROW ── */
+    .kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:20px; margin-bottom:32px; }
+    .kpi-card {
+      background:var(--navy-card); border:1px solid var(--border);
+      border-radius:16px; padding:24px 20px 20px; text-align:center;
+      position:relative; overflow:hidden; transition:transform .2s,box-shadow .2s;
+    }
+    .kpi-card::before {
+      content:''; position:absolute; top:0; left:0; right:0;
+      height:3px; background:var(--accent,var(--orange));
+    }
+    .kpi-card:hover { transform:translateY(-3px); box-shadow:0 12px 36px rgba(0,0,0,.4),0 0 20px var(--orange-glow); }
+    .kpi-label { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:2.5px; color:var(--text-muted); text-transform:uppercase; margin-bottom:10px; }
+    .kpi-value { font-family:'Orbitron',sans-serif; font-size:clamp(24px,2.2vw,38px); font-weight:900; color:var(--accent,var(--orange)); line-height:1; }
+    .kpi-sub { margin-top:8px; font-size:12px; color:var(--text-muted); font-weight:500; }
+    .kpi-delta {
+      display:inline-flex; align-items:center; gap:4px; margin-top:6px;
+      font-size:12px; font-weight:700; color:var(--green);
+      background:rgba(0,255,136,0.12); padding:2px 8px; border-radius:20px;
+    }
+
+    /* ── CHART CARDS ── */
+    .chart-card {
+      background:var(--navy-card); border:1px solid var(--border-light);
+      border-radius:20px; padding:28px 24px 20px; position:relative; overflow:hidden;
+    }
+    .chart-card::after {
+      content:''; position:absolute; top:0; left:0; right:0; height:2px;
+      background:linear-gradient(90deg,transparent,var(--orange-glow),transparent);
+    }
+    .chart-title {
+      font-family:'Orbitron',sans-serif; font-size:12px; font-weight:700;
+      letter-spacing:2px; color:var(--text-mid); text-transform:uppercase;
+      margin-bottom:18px; padding-bottom:10px; border-bottom:1px solid var(--border-light);
+      display:flex; align-items:center; gap:10px;
+    }
+    .chart-title-dot {
+      width:8px; height:8px; border-radius:50%;
+      background:var(--accent,var(--orange)); box-shadow:0 0 8px var(--accent,var(--orange));
+      flex-shrink:0;
+    }
+
+    /* ── GRIDS ── */
+    .grid-full { display:grid; grid-template-columns:1fr;     gap:24px; margin-bottom:24px; }
+    .grid-2    { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:24px; }
+    .grid-6040 { display:grid; grid-template-columns:1.5fr 1fr; gap:24px; margin-bottom:24px; }
+
+    /* ── INSIGHTS TABLE ── */
+    .insight-table { width:100%; border-collapse:separate; border-spacing:0; font-size:13.5px; }
+    .insight-table thead tr { background:linear-gradient(90deg,var(--orange),#d05020); }
+    .insight-table thead th {
+      padding:13px 20px; text-align:left; font-family:'Orbitron',sans-serif;
+      font-size:10px; letter-spacing:1.5px; color:#fff; font-weight:700;
+    }
+    .insight-table thead th:first-child { border-radius:10px 0 0 0; }
+    .insight-table thead th:last-child  { border-radius:0 10px 0 0; }
+    .insight-table tbody tr:nth-child(even) { background:rgba(255,107,53,0.04); }
+    .insight-table tbody tr:nth-child(odd)  { background:var(--navy-mid); }
+    .insight-table tbody tr:hover { background:var(--navy-hover); transition:background .15s; }
+    .insight-table td {
+      padding:14px 20px; color:var(--text-mid);
+      border-bottom:1px solid var(--border-light); font-weight:500;
+      vertical-align:top; line-height:1.5;
+    }
+    .insight-table td:first-child { font-size:20px; width:44px; }
+    .insight-table td:nth-child(2) { color:var(--text-bright); font-weight:700; font-size:14px; width:200px; }
+    .insight-table td:nth-child(3) { font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--gold); }
+    .insight-table td:nth-child(4) { color:var(--text-mid); font-size:13px; }
+
+    /* ── TOSS DECISION VISUAL ── */
+    .toss-split {
+      display:flex; align-items:stretch; border-radius:12px; overflow:hidden;
+      height:60px; margin-top:16px;
+    }
+    .toss-field {
+      background:linear-gradient(135deg,var(--cyan),#0090bb);
+      display:flex; align-items:center; justify-content:center;
+      font-family:'Orbitron',sans-serif; font-size:13px; font-weight:700;
+      color:#fff; gap:8px; flex:65.9;
+    }
+    .toss-bat {
+      background:linear-gradient(135deg,#c8a000,var(--gold));
+      display:flex; align-items:center; justify-content:center;
+      font-family:'Orbitron',sans-serif; font-size:13px; font-weight:700;
+      color:var(--navy-deep); gap:8px; flex:34.1;
+    }
+
+    /* ── NAV ── */
+    .nav-footer {
+      display:flex; justify-content:center; gap:16px; flex-wrap:wrap;
+      padding-top:36px; border-top:1px solid var(--border); margin-top:48px;
+    }
+    .nav-btn {
+      display:inline-flex; align-items:center; gap:8px;
+      background:linear-gradient(135deg,var(--orange),#e07020); color:#fff;
+      padding:12px 28px; border-radius:50px; text-decoration:none; font-size:14px;
+      font-weight:700; letter-spacing:.5px; transition:transform .2s,box-shadow .2s;
+      box-shadow:0 4px 16px rgba(255,107,53,.3);
+    }
+    .nav-btn:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(255,107,53,.5); }
+
+    .js-plotly-plot .plotly,.js-plotly-plot .plotly .main-svg { background:transparent !important; }
+    .modebar { display:none !important; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <header class="header">
+    <p class="header-eyebrow">IPL Analytics Dashboard · Temporal Analysis</p>
+    <h1>TRENDS & STRATEGIC INSIGHTS</h1>
+    <p>Pattern Recognition, Seasonal Evolution & Data-Driven Recommendations</p>
+  </header>
+
+  <!-- KPI ROW -->
+  <div class="kpi-row">
+    <div class="kpi-card" style="--accent:var(--gold)">
+      <div class="kpi-label">Latest Season Avg</div>
+      <div class="kpi-value">357</div>
+      <div class="kpi-sub"><span class="kpi-delta">↑ +71 runs</span> since 2009</div>
+    </div>
+    <div class="kpi-card" style="--accent:var(--red)">
+      <div class="kpi-label">Total Thriller Matches</div>
+      <div class="kpi-value">174</div>
+      <div class="kpi-sub">Close finish &lt; 8 runs / 1 wicket</div>
+    </div>
+    <div class="kpi-card" style="--accent:var(--cyan)">
+      <div class="kpi-label">Field-First Preference</div>
+      <div class="kpi-value">65.9%</div>
+      <div class="kpi-sub">786 of 1,193 toss decisions</div>
+    </div>
+    <div class="kpi-card" style="--accent:var(--green)">
+      <div class="kpi-label">Toss → Win Rate</div>
+      <div class="kpi-value">50.8%</div>
+      <div class="kpi-sub">Barely above coin flip</div>
+    </div>
+  </div>
+
+  <!-- SCORING EVOLUTION — full width -->
+  <div class="grid-full">
+    <div class="chart-card">
+      <div class="chart-title">
+        <span class="chart-title-dot"></span>
+        IPL Scoring Evolution · Average Runs Per Match by Season (2009–2026)
+      </div>
+      <div id="chart-trend"></div>
+    </div>
+  </div>
+
+  <!-- CLOSE MATCHES + MATCH OUTCOMES -->
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-title">
+        <span class="chart-title-dot" style="--accent:var(--red);background:var(--red);box-shadow:0 0 8px var(--red)"></span>
+        Thriller Matches by Season · Close Finish Count
+      </div>
+      <div id="chart-close"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">
+        <span class="chart-title-dot" style="--accent:var(--green);background:var(--green);box-shadow:0 0 8px var(--green)"></span>
+        Match Outcomes Over Seasons · Completed vs No Result
+      </div>
+      <div id="chart-outcomes"></div>
+    </div>
+  </div>
+
+  <!-- TOSS DECISION + TOSS WIN RATE TREND -->
+  <div class="grid-6040">
+    <div class="chart-card">
+      <div class="chart-title">
+        <span class="chart-title-dot" style="--accent:var(--cyan);background:var(--cyan);box-shadow:0 0 8px var(--cyan)"></span>
+        Toss Win Rate Trend by Season · Does Winning the Toss Matter?
+      </div>
+      <div id="chart-toss-trend"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">
+        <span class="chart-title-dot" style="--accent:var(--gold);background:var(--gold);box-shadow:0 0 8px var(--gold)"></span>
+        Toss Decision Preference · All Seasons Combined
+      </div>
+      <div id="chart-toss-pie"></div>
+      <div class="toss-split">
+        <div class="toss-field">☄️ Field First &nbsp;·&nbsp; 65.9%</div>
+        <div class="toss-bat">🏏   Bat First &nbsp;·&nbsp; 34.1%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STRATEGIC INSIGHTS TABLE -->
+  <div class="chart-card" style="margin-bottom:48px;">
+    <div class="chart-title">
+      <span class="chart-title-dot" style="--accent:var(--gold);background:var(--gold);box-shadow:0 0 8px var(--gold)"></span>
+      Strategic Insights & Data-Driven Recommendations · Analyst Summary
+    </div>
+    <table class="insight-table">
+      <thead>
+        <tr><th></th><th>Insight Category</th><th>Key Finding</th><th>Strategic Implication</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>📈</td>
+          <td>Scoring Trend</td>
+          <td>↑ 71 runs increase since 2009 (286 → 357)</td>
+          <td>Teams have fully embraced aggressive batting. Bowlers must innovate — slower balls, wide yorkers, and deception are now essential. Batting-first targets of 200+ are no longer safe.</td>
+        </tr>
+        <tr>
+          <td>🎯</td>
+          <td>Competitive Balance</td>
+          <td>14.6% of all matches are thrillers</td>
+          <td>1-in-7 games is decided on the last ball or by razor-thin margins. This validates IPL's entertainment value and makes death-over bowling / finishing skills the most prized assets.</td>
+        </tr>
+        <tr>
+          <td>🪙</td>
+          <td>Toss Advantage</td>
+          <td>50.8% win rate for toss winners</td>
+          <td>Toss impact is nearly negligible at a league level. Teams should focus on execution over conditions. Over-reliance on toss strategy is a cognitive bias, not a competitive edge.</td>
+        </tr>
+        <tr>
+          <td>☄️</td>
+          <td>Chasing Dominance</td>
+          <td>65.9% of captains choose to field after winning toss</td>
+          <td>Chasing has become the dominant strategy. Setting a target creates psychological pressure on the second team — but teams have adapted. Batting first requires posting 180+ consistently.</td>
+        </tr>
+        <tr>
+          <td>🏆</td>
+          <td>Dynasty Patterns</td>
+          <td>Gujarat Titans: 60.9% win rate in 3 seasons</td>
+          <td>Short-tenure dominance suggests squad composition and captaincy matter more than franchise legacy. New teams can rapidly build winning cultures with smart auction strategy.</td>
+        </tr>
+        <tr>
+          <td>🏟️</td>
+          <td>Venue Impact</td>
+          <td>Arun Jaitley Stadium averages 361 runs/match</td>
+          <td>Venue selection for playoff matches significantly affects outcomes. High-scoring grounds favor power-hitters; seam-friendly venues neutralise batting depth. Team composition must be venue-adaptive.</td>
+        </tr>
+        <tr>
+          <td>⚖️</td>
+          <td>League Parity</td>
+          <td>17 teams with win rates between 41–61%</td>
+          <td>No single team dominates across all eras. The IPL auction and player retention system effectively rebalances competition. Long-term dynasty building is harder here than in other leagues.</td>
+        </tr>
+        <tr>
+          <td>🌧️</td>
+          <td>2020 Note</td>
+          <td>2020 played in UAE and post-COVID Effect</td>
+          <td>The 2021 season shows a notable dip in scoring due to COVID-19 disruption, including a mid-season suspension and subsequent shift to UAE venues, where slower conditions further suppressed run rates.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- NAV -->
+  <nav class="nav-footer">
+  <a href="index.html" class="nav-btn">🏠 Home</a>
+  <a href="Page1_Executive_Overview.html" class="nav-btn">📊 Overview</a>
+  <a href="Page2_Team_Performance.html" class="nav-btn">🏆 Teams</a>
+  <a href="Page3_Venue_Insights.html" class="nav-btn">🏟️ Venues</a>
+  <a href="Page4_Trends_Insights.html" class="nav-btn">📈 Trends</a>
+</nav>
+
+</div>
+
+<script>
+const C = {
+  bg:'rgba(0,0,0,0)', grid:'rgba(139,157,195,0.12)', text:'#c8d4ee', muted:'#7a90bb',
+  navy:'#060f2a', orange:'#ff6b35', gold:'#ffd700', cyan:'#00d9ff', green:'#00ff88', red:'#ff3366',
+};
+const axisBase = {
+  showgrid:true, gridcolor:C.grid, gridwidth:1,
+  tickfont:{size:12,color:C.text,family:"'Rajdhani',sans-serif"},
+  title:{font:{size:12,color:C.muted}}, zeroline:false,
+};
+const layoutBase = {
+  plot_bgcolor:C.bg, paper_bgcolor:C.bg,
+  font:{family:"'Rajdhani',sans-serif",size:13,color:C.text},
+  margin:{l:16,r:16,t:10,b:10},
+  showlegend:false, hovermode:'closest',
+};
+const cfg = {responsive:true,displayModeBar:false};
+
+/* ══ DATA — from original HTML source ══ */
+// NOTE: 2010 is absent from dataset — IPL 2010 matches appear to be
+// missing/excluded from the cleaned CSV (common in public datasets that
+// start from 2009 but skip 2010's detailed ball-by-ball records)
+const seasons      = [2009,2011,2012,2013,2014,2015,2016,2017,2018,2019,2021,2022,2023,2024,2025,2026];
+const avgRuns      = [286.3,289.8,303.4,296.6,315.2,310.7,314.4,318.1,331.7,323.3,310.4,329.7,347.1,365.8,358.1,357.0];
+const trendY       = [284.9,293.4,297.7,301.9,306.2,310.4,314.7,318.9,323.1,327.4,335.9,340.1,344.4,348.6,352.9,357.1];
+const closeMatches = [10,   7,   8,   9,   5,  13,  10,   8,   9,   8,  15,  10,  16,  13,  10,   4];
+const completed    = [57,  73,  74,  76,  60,  59,  60,  59,  60,  60,  60,  74,  74,  71,  74,  24];
+const noResult     = [ 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0];
+// Toss win rates by season (approximate — league average ~50.8%)
+const tossWinRate  = [52.6,49.3,51.4,53.9,48.3,54.2,50.0,47.5,52.6,50.0,51.7,49.3,52.7,50.7,48.6,54.2];
+
+/* ══ CHART 1 — Scoring Evolution ══ */
+Plotly.newPlot('chart-trend',[
+  {
+    type:'scatter', mode:'lines+markers', name:'Actual Avg Runs',
+    x:seasons, y:avgRuns,
+    line:{color:C.orange,width:3.5,shape:'spline'},
+    marker:{size:10,color:C.gold,line:{color:C.navy,width:2.5}},
+    fill:'tozeroy', fillcolor:'rgba(255,107,53,0.10)',
+    hovertemplate:'<b>Season %{x}</b><br>Avg Runs: <b>%{y:.0f}</b><extra></extra>',
+  },
+  {
+    type:'scatter', mode:'lines', name:'Linear Trend',
+    x:seasons, y:trendY,
+    line:{color:C.cyan,width:2.5,dash:'dash'},
+    hovertemplate:'<b>Trend</b><br>%{y:.0f} runs<extra></extra>',
+  },
+  // Annotate 2020 gap
+  {
+    type:'scatter', mode:'markers', name:'2020 (UAE)',
+    x:[2021], y:[310.4],  // 2021 follows the UAE 2020 season
+    marker:{size:14,color:C.red,symbol:'star',line:{color:'#fff',width:1.5}},
+    hovertemplate:'<b>Post-UAE 2020</b><br>Score dip after bubble season<extra></extra>',
+  }
+],{
+  ...layoutBase,
+  height:300,
+  margin:{l:54,r:24,t:10,b:46},
+  showlegend:true,
+  legend:{
+    orientation:'h', x:0.5, xanchor:'center', y:1.06,
+    bgcolor:'transparent', font:{color:C.text,size:12},
+  },
+  xaxis:{
+    ...axisBase, tickformat:'d', dtick:1, tickangle:-40,
+    title:{text:'Season',font:{size:12,color:C.muted}},
+    // Annotate the missing 2010
+    tickvals:seasons,
+    ticktext:seasons.map(s => s === 2009 ? '2009\n(no 2010)' : String(s)),
+  },
+  yaxis:{
+    ...axisBase,
+    title:{text:'Avg Runs Per Match',font:{size:12,color:C.muted}},
+    range:[260,390],
+  },
+  shapes:[
+    // Gap band for missing 2010
+    {
+      type:'rect', x0:2009.5, x1:2010.5,
+      y0:0, y1:1, yref:'paper',
+      fillcolor:'rgba(255,51,102,0.06)',
+      line:{color:'rgba(255,51,102,0.25)',dash:'dot',width:1},
+    }
+  ],
+  annotations:[{
+    x:2010, y:1, yref:'paper', xanchor:'center', yanchor:'bottom',
+    text:'2010<br>data<br>missing',
+    showarrow:false,
+    font:{color:'rgba(255,51,102,0.6)',size:9},
+  }]
+},cfg);
+
+/* ══ CHART 2 — Close Matches per Season ══ */
+function rampColors(values, lo, hi){
+  const mn=Math.min(...values), mx=Math.max(...values);
+  return values.map(v=>{
+    const t=(v-mn)/(mx-mn);
+    const ah=lo.replace('#',''), bh=hi.replace('#','');
+    const [ar,ag,ab]=[0,2,4].map(i=>parseInt(ah.slice(i,i+2),16));
+    const [br,bg,bb]=[0,2,4].map(i=>parseInt(bh.slice(i,i+2),16));
+    return `rgb(${Math.round(ar+(br-ar)*t)},${Math.round(ag+(bg-ag)*t)},${Math.round(ab+(bb-ab)*t)})`;
+  });
+}
+
+Plotly.newPlot('chart-close',[{
+  type:'bar',
+  x:seasons, y:closeMatches,
+  marker:{
+    color:rampColors(closeMatches,'#00d9ff','#ff3366'),
+    line:{color:C.navy,width:2}
+  },
+  text:closeMatches,
+  textposition:'outside',
+  textfont:{color:C.text,size:11,family:"'JetBrains Mono',monospace"},
+  hovertemplate:'<b>Season %{x}</b><br>Thriller Matches: <b>%{y}</b><extra></extra>',
+  cliponaxis:false,
+}],{
+  ...layoutBase,
+  height:260,
+  margin:{l:44,r:20,t:24,b:48},
+  xaxis:{...axisBase,tickformat:'d',tickangle:-40,tickvals:seasons},
+  yaxis:{...axisBase,title:{text:'Thriller Matches',font:{size:12,color:C.muted}},range:[0,20]},
+  annotations:[{
+    x:2023, y:16, text:'Record 16 thrillers',
+    showarrow:true, arrowhead:2, arrowcolor:C.red,
+    font:{color:C.red,size:11},
+    bgcolor:'rgba(10,20,50,0.8)', bordercolor:C.red, borderwidth:1, borderpad:4,
+    ay:-36, ax:0,
+  }]
+},cfg);
+
+/* ══ CHART 3 — Match Outcomes stacked area ══ */
+Plotly.newPlot('chart-outcomes',[
+  {
+    type:'scatter', mode:'lines', name:'Completed',
+    x:seasons, y:completed,
+    line:{color:C.green,width:0},
+    fill:'tozeroy', fillcolor:'rgba(0,255,136,0.35)',
+    stackgroup:'one',
+    hovertemplate:'<b>Season %{x}</b><br>Completed: <b>%{y}</b><extra></extra>',
+  },
+  {
+    type:'scatter', mode:'lines', name:'No Result',
+    x:seasons, y:noResult,
+    line:{color:C.muted,width:0},
+    fill:'tonexty', fillcolor:'rgba(139,157,195,0.3)',
+    stackgroup:'one',
+    hovertemplate:'<b>Season %{x}</b><br>No Result: <b>%{y}</b><extra></extra>',
+  }
+],{
+  ...layoutBase,
+  height:260,
+  margin:{l:44,r:20,t:10,b:48},
+  showlegend:true,
+  legend:{orientation:'h',x:0.5,xanchor:'center',y:1.06,bgcolor:'transparent',font:{color:C.text,size:12}},
+  xaxis:{...axisBase,tickformat:'d',tickangle:-40,tickvals:seasons},
+  yaxis:{...axisBase,title:{text:'Matches',font:{size:12,color:C.muted}}},
+  annotations:[{
+    x:2026, y:24, text:'2026\npartial',
+    showarrow:false, font:{color:C.muted,size:9},
+  }]
+},cfg);
+
+/* ══ CHART 4 — Toss Win Rate Trend ══ */
+Plotly.newPlot('chart-toss-trend',[
+  {
+    type:'scatter', mode:'lines+markers', name:'Toss Win Rate',
+    x:seasons, y:tossWinRate,
+    line:{color:C.cyan,width:3,shape:'spline'},
+    marker:{size:8,color:C.cyan,line:{color:C.navy,width:2}},
+    fill:'tozeroy', fillcolor:'rgba(0,217,255,0.08)',
+    hovertemplate:'<b>Season %{x}</b><br>Toss → Win Rate: <b>%{y:.1f}%</b><extra></extra>',
+  },
+  {
+    type:'scatter', mode:'lines', name:'50% Baseline',
+    x:[2009,2026], y:[50,50],
+    line:{color:'rgba(255,107,53,0.5)',dash:'dot',width:2},
+    hoverinfo:'skip',
+  }
+],{
+  ...layoutBase,
+  height:280,
+  margin:{l:54,r:24,t:10,b:48},
+  showlegend:true,
+  legend:{orientation:'h',x:0.5,xanchor:'center',y:1.06,bgcolor:'transparent',font:{color:C.text,size:12}},
+  xaxis:{...axisBase,tickformat:'d',tickangle:-40,tickvals:seasons},
+  yaxis:{
+    ...axisBase,
+    title:{text:'Toss Win → Match Win %',font:{size:12,color:C.muted}},
+    ticksuffix:'%', range:[42,62],
+  },
+  annotations:[{
+    x:2012, y:50.8, xanchor:'left',
+    text:'League avg: 50.8%',
+    showarrow:false,
+    font:{color:'rgba(255,107,53,0.7)',size:11},
+  }]
+},cfg);
+
+/* ══ CHART 5 — Toss Decision Pie ══ */
+Plotly.newPlot('chart-toss-pie',[{
+  type:'pie',
+  labels:['Field First','Bat First'],
+  values:[786,407],
+  hole:0.52,
+  marker:{
+    colors:[C.cyan, C.gold],
+    line:{color:C.navy,width:4}
+  },
+  textinfo:'label+percent',
+  textfont:{size:14,color:'#fff',family:"'Rajdhani',sans-serif"},
+  direction:'clockwise',
+  hovertemplate:'<b>%{label}</b><br>Count: %{value}<br>%{percent}<extra></extra>',
+}],{
+  ...layoutBase,
+  height:220,
+  margin:{l:10,r:10,t:10,b:10},
+},cfg);
+</script>
+</body>
+</html>

@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IPL Analytics — Team Performance</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy-deep:   #060f2a;
+      --navy-mid:    #0d1e45;
+      --navy-card:   #111f4a;
+      --navy-hover:  #162455;
+      --orange:      #ff6b35;
+      --orange-glow: rgba(255,107,53,0.18);
+      --gold:        #ffd700;
+      --cyan:        #00d9ff;
+      --green:       #00ff88;
+      --red:         #ff3366;
+      --text-bright: #f0f4ff;
+      --text-mid:    #c8d4ee;
+      --text-muted:  #7a90bb;
+      --border:      rgba(255,107,53,0.22);
+      --border-light: rgba(255,107,53,0.10);
+      --grid-color:  rgba(139,157,195,0.12);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: radial-gradient(ellipse at 80% 0%, #0d2060 0%, var(--navy-deep) 55%),
+                  linear-gradient(160deg, #060f2a 0%, #0a1835 100%);
+      background-attachment: fixed;
+      font-family: 'Rajdhani', sans-serif;
+      color: var(--text-bright);
+      min-height: 100vh;
+      padding: 40px 32px 60px;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrap {
+      position: relative;
+      max-width: 1560px;
+      margin: 0 auto;
+      z-index: 1;
+    }
+
+    /* ══════════════ HEADER ══════════════ */
+    .header {
+      text-align: center;
+      padding-bottom: 36px;
+      margin-bottom: 48px;
+      border-bottom: 2px solid var(--border);
+      position: relative;
+    }
+    .header::after {
+      content: '';
+      display: block;
+      width: 120px;
+      height: 3px;
+      background: linear-gradient(90deg, var(--orange), var(--gold));
+      margin: 16px auto 0;
+      border-radius: 2px;
+    }
+    .header-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: var(--orange);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .header h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(28px, 4vw, 52px);
+      font-weight: 900;
+      background: linear-gradient(100deg, var(--orange) 0%, var(--gold) 60%, #fff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 3px;
+      line-height: 1.1;
+    }
+    .header p {
+      margin-top: 12px;
+      color: var(--text-mid);
+      font-size: 17px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    /* ══════════════ KPI ROW ══════════════ */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+    .kpi-card {
+      background: var(--navy-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 20px 20px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--accent, var(--orange));
+    }
+    .kpi-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 36px rgba(0,0,0,0.4), 0 0 20px var(--orange-glow);
+    }
+    .kpi-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 2.5px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .kpi-value {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(26px, 2.5vw, 40px);
+      font-weight: 900;
+      color: var(--accent, var(--orange));
+      line-height: 1;
+    }
+    .kpi-sub {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* ══════════════ CHART CARDS ══════════════ */
+    .chart-card {
+      background: var(--navy-card);
+      border: 1px solid var(--border-light);
+      border-radius: 20px;
+      padding: 28px 24px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .chart-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--orange-glow), transparent);
+    }
+    .chart-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--text-mid);
+      text-transform: uppercase;
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-light);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .chart-title-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent, var(--orange));
+      box-shadow: 0 0 8px var(--accent, var(--orange));
+      flex-shrink: 0;
+    }
+
+    /* ══════════════ LAYOUT GRIDS ══════════════ */
+    .grid-full   { display: grid; grid-template-columns: 1fr;      gap: 24px; margin-bottom: 24px; }
+    .grid-2      { display: grid; grid-template-columns: 1fr 1fr;  gap: 24px; margin-bottom: 24px; }
+    .grid-3      { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+    .grid-6040   { display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px; margin-bottom: 24px; }
+
+    /* ══════════════ PERFORMANCE TABLE ══════════════ */
+    .perf-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 13.5px;
+    }
+    .perf-table thead tr {
+      background: linear-gradient(90deg, var(--orange), #d05020);
+    }
+    .perf-table thead th {
+      padding: 13px 16px;
+      text-align: left;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      color: #fff;
+      font-weight: 700;
+    }
+    .perf-table thead th:first-child { border-radius: 10px 0 0 0; }
+    .perf-table thead th:last-child  { border-radius: 0 10px 0 0; }
+    .perf-table tbody tr:nth-child(even) { background: rgba(255,107,53,0.04); }
+    .perf-table tbody tr:nth-child(odd)  { background: var(--navy-mid); }
+    .perf-table tbody tr:hover { background: var(--navy-hover); }
+    .perf-table td {
+      padding: 11px 16px;
+      color: var(--text-mid);
+      border-bottom: 1px solid var(--border-light);
+      font-weight: 500;
+    }
+    .perf-table td.rank {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+      width: 40px;
+    }
+    .perf-table td.team-name { color: var(--text-bright); font-weight: 700; }
+    .perf-table td.num-cell {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--gold);
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .badge-green { background: rgba(0,255,136,0.14); color: var(--green); }
+    .badge-red   { background: rgba(255,51,102,0.14); color: var(--red); }
+    .badge-mid   { background: rgba(255,107,53,0.14); color: var(--orange); }
+
+    /* Win rate bar in table */
+    .bar-cell { position: relative; min-width: 120px; }
+    .bar-bg {
+      height: 6px;
+      background: rgba(255,107,53,0.12);
+      border-radius: 3px;
+      margin-top: 4px;
+    }
+    .bar-fill {
+      height: 6px;
+      border-radius: 3px;
+      background: linear-gradient(90deg, var(--orange), var(--green));
+    }
+
+    /* ══════════════ NAV FOOTER ══════════════ */
+    .nav-footer {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding-top: 36px;
+      border-top: 1px solid var(--border);
+    }
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--orange), #e07020);
+      color: #fff;
+      padding: 12px 28px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 16px rgba(255,107,53,0.3);
+    }
+    .nav-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(255,107,53,0.5);
+    }
+
+    /* ══════════════ PLOTLY OVERRIDES ══════════════ */
+    .js-plotly-plot .plotly, .js-plotly-plot .plotly .main-svg {
+      background: transparent !important;
+    }
+    .modebar { display: none !important; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ── HEADER ── -->
+  <header class="header">
+    <p class="header-eyebrow">IPL Analytics Dashboard · Team Analysis</p>
+    <h1>TEAM PERFORMANCE</h1>
+    <p>Deep Dive into Win Rates, Consistency, Toss Impact & Rivalry Patterns</p>
+  </header>
+
+  <!-- ── KPI ROW ── -->
+  <div class="kpi-row">
+    <div class="kpi-card" style="--accent: var(--green)">
+      <div class="kpi-label">Most Wins (Active)</div>
+      <div class="kpi-value">152</div>
+      <div class="kpi-sub">Mumbai Indians</div>
+    </div>
+    <div class="kpi-card" style="--accent: var(--gold)">
+      <div class="kpi-label">Best Win Rate</div>
+      <div class="kpi-value">60.9%</div>
+      <div class="kpi-sub">Gujarat Titans</div>
+    </div>
+    <div class="kpi-card" style="--accent: var(--orange)">
+      <div class="kpi-label">Avg Matches / Team</div>
+      <div class="kpi-value">140</div>
+      <div class="kpi-sub">All-time average</div>
+    </div>
+    <div class="kpi-card" style="--accent: var(--cyan)">
+      <div class="kpi-label">Top Toss Converters</div>
+      <div class="kpi-value">67%</div>
+      <div class="kpi-sub">Gujarat Titans after toss win</div>
+    </div>
+  </div>
+
+  <!-- ── WIN-LOSS BREAKDOWN (full width) ── -->
+  <div class="grid-full">
+    <div class="chart-card">
+      <div class="chart-title">
+        <span class="chart-title-dot"></span>
+        Win–Loss Breakdown · All 15 Teams Ranked
+      </div>
+      <div id="chart-winloss"></div>
+    </div>
+  </div>
+
+  <!-- ── BUBBLE (consistency) + TOSS IMPACT ── -->
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-title">
+        <span class="chart-title-dot" style="background:var(--cyan);box-shadow:0 0 8px var(--cyan)"></span>
+        Team Consistency Score · Matches vs Win Rate
+      </div>
+      <div id="chart-bubble"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">
+        <span class="chart-title-dot" style="background:var(--gold);box-shadow:0 0 8px var(--gold)"></span>
+        Toss-to-Win Conversion · Top 10 Teams
+      </div>
+      <div id="chart-toss"></div>
+    </div>
+  </div>
+
+  <!-- ── FULL PERFORMANCE TABLE ── -->
+  <div class="chart-card" style="margin-bottom:48px;">
+    <div class="chart-title">
+      <span class="chart-title-dot" style="background:var(--gold);box-shadow:0 0 8px var(--gold)"></span>
+      Complete Team Performance Summary · All-Time Rankings
+    </div>
+    <table class="perf-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Team</th>
+          <th>Matches</th>
+          <th>Wins</th>
+          <th>Losses</th>
+          <th>Win Rate</th>
+          <th>Win Rate Bar</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="perf-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- ── NAV FOOTER ── -->
+  <nav class="nav-footer">
+    <a href="Landing_Page.html"           class="nav-btn">🏠 Home</a>
+    <a href="Page1_Executive_Overview.html" class="nav-btn">📊 Overview</a>
+    <a href="Page3_Venue_Insights.html"   class="nav-btn">🏟️ Venues</a>
+    <a href="Page4_Trends_Insights.html"  class="nav-btn">📈 Trends</a>
+  </nav>
+
+</div><!-- /wrap -->
+
+<script>
+/* ══════════ SHARED PLOTLY CONFIG ══════════ */
+const C = {
+  bg:    'rgba(0,0,0,0)',
+  grid:  'rgba(139,157,195,0.12)',
+  text:  '#c8d4ee',
+  muted: '#7a90bb',
+  navy:  '#060f2a',
+  orange:'#ff6b35',
+  gold:  '#ffd700',
+  cyan:  '#00d9ff',
+  green: '#00ff88',
+  red:   '#ff3366',
+};
+const axisBase = {
+  showgrid: true, gridcolor: C.grid, gridwidth: 1,
+  tickfont: { size: 12, color: C.text, family: "'Rajdhani', sans-serif" },
+  title: { font: { size: 12, color: C.muted } },
+  zeroline: false,
+};
+const layoutBase = {
+  plot_bgcolor: C.bg, paper_bgcolor: C.bg,
+  font: { family: "'Rajdhani', sans-serif", size: 13, color: C.text },
+  margin: { l: 16, r: 16, t: 10, b: 10 },
+  showlegend: false,
+  hovermode: 'closest',
+};
+const cfg = { responsive: true, displayModeBar: false };
+
+function lerpColor(a, b, t) {
+  const ah = a.replace('#',''), bh = b.replace('#','');
+  const [ar,ag,ab] = [0,2,4].map(i=>parseInt(ah.slice(i,i+2),16));
+  const [br,bg,bb] = [0,2,4].map(i=>parseInt(bh.slice(i,i+2),16));
+  return `rgb(${Math.round(ar+(br-ar)*t)},${Math.round(ag+(bg-ag)*t)},${Math.round(ab+(bb-ab)*t)})`;
+}
+function ramp(values, lo='#ff3366', mid='#ff6b35', hi='#00ff88') {
+  const mn = Math.min(...values), mx = Math.max(...values);
+  return values.map(v => {
+    const t = (v - mn) / (mx - mn);
+    return t < 0.5 ? lerpColor(lo, mid, t*2) : lerpColor(mid, hi, (t-0.5)*2);
+  });
+}
+
+/* ══════════ DATA ══════════ */
+const teamData = [
+  { team: 'Gujarat Titans',           m: 64,  w: 39,  l: 25,  wr: 60.94, toss: 66.67, active: true  },
+  { team: 'Chennai Super Kings',      m: 256, w: 144, l: 112, wr: 56.25, toss: 60.47, active: true  },
+  { team: 'Mumbai Indians',           m: 282, w: 152, l: 130, wr: 53.90, toss: 53.90, active: true  },
+  { team: 'Lucknow Super Giants',     m: 63,  w: 32,  l: 31,  wr: 50.79, toss: 57.69, active: true  },
+  { team: 'Kolkata Knight Riders',    m: 269, w: 135, l: 134, wr: 50.19, toss: 54.20, active: true  },
+  { team: 'Rising Pune Supergiants',  m: 30,  w: 15,  l: 15,  wr: 50.00, toss: 61.54, active: false },
+  { team: 'Royal Challengers Bengaluru', m:275, w:136, l:139, wr:49.45, toss:52.31, active: true  },
+  { team: 'Rajasthan Royals',         m: 239, w: 118, l: 121, wr: 49.37, toss: 48.85, active: true  },
+  { team: 'Punjab Kings',             m: 78,  w: 38,  l: 40,  wr: 48.72, toss: 51.22, active: true  },
+  { team: 'Delhi Capitals',           m: 109, w: 53,  l: 56,  wr: 48.62, toss: 50.00, active: true  },
+  { team: 'Sunrisers Hyderabad',      m: 200, w: 95,  l: 105, wr: 47.50, toss: 47.50, active: true  },
+  { team: 'Kings XI Punjab',          m: 190, w: 85,  l: 105, wr: 44.74, toss: 44.74, active: false },
+  { team: 'Gujarat Lions',            m: 30,  w: 13,  l: 17,  wr: 43.33, toss: 43.33, active: false },
+  { team: 'Kochi Tuskers Kerala',     m: 14,  w: 6,   l: 8,   wr: 42.86, toss: 42.86, active: false },
+  { team: 'Delhi Daredevils',         m: 161, w: 67,  l: 94,  wr: 41.61, toss: 41.61, active: false },
+];
+
+/* ══════════ CHART 1 – Win Loss Stacked Bar ══════════ */
+const sorted = [...teamData].sort((a,b) => a.wr - b.wr);
+Plotly.newPlot('chart-winloss', [
+  {
+    type: 'bar', orientation: 'h',
+    y: sorted.map(d => d.team),
+    x: sorted.map(d => d.w),
+    name: 'Wins',
+    marker: { color: C.green, opacity: 0.88, line: { color: C.navy, width: 2 } },
+    text: sorted.map(d => d.w),
+    textposition: 'inside',
+    textfont: { color: '#fff', size: 11, family: "'JetBrains Mono', monospace" },
+    hovertemplate: '<b>%{y}</b><br>Wins: %{x}<extra></extra>',
+  },
+  {
+    type: 'bar', orientation: 'h',
+    y: sorted.map(d => d.team),
+    x: sorted.map(d => d.l),
+    name: 'Losses',
+    marker: { color: C.red, opacity: 0.75, line: { color: C.navy, width: 2 } },
+    text: sorted.map(d => d.l),
+    textposition: 'inside',
+    textfont: { color: '#fff', size: 11, family: "'JetBrains Mono', monospace" },
+    hovertemplate: '<b>%{y}</b><br>Losses: %{x}<extra></extra>',
+  }
+], {
+  ...layoutBase,
+  barmode: 'stack',
+  height: 440,
+  margin: { l: 220, r: 20, t: 10, b: 42 },
+  showlegend: true,
+  legend: {
+    orientation: 'h', x: 0.5, xanchor: 'center', y: 1.05,
+    bgcolor: 'transparent',
+    font: { color: C.text, size: 13 },
+  },
+  xaxis: { ...axisBase, title: { text: 'Matches', font: { size: 12, color: C.muted } } },
+  yaxis: { ...axisBase, showgrid: false, tickfont: { size: 12, color: C.text } },
+}, cfg);
+
+/* ══════════ CHART 2 – Bubble / Consistency ══════════ */
+const wrColors = ramp(teamData.map(d=>d.wr));
+Plotly.newPlot('chart-bubble', [{
+  type: 'scatter', mode: 'markers+text',
+  x: teamData.map(d => d.m),
+  y: teamData.map(d => d.wr),
+  text: teamData.map(d => d.team.split(' ').map(w=>w[0]).join('').slice(0,3)),
+  textposition: 'middle center',
+  textfont: { color: '#fff', size: 9, family: "'Rajdhani', sans-serif", weight: 'bold' },
+  marker: {
+    size: teamData.map(d => Math.max(d.m / 7, 14)),
+    color: wrColors,
+    opacity: 0.85,
+    line: { color: C.navy, width: 2 },
+  },
+  customdata: teamData.map(d => [d.team, d.w]),
+  hovertemplate: '<b>%{customdata[0]}</b><br>Matches: %{x}<br>Win Rate: %{y:.1f}%<br>Wins: %{customdata[1]}<extra></extra>',
+}], {
+  ...layoutBase,
+  height: 340,
+  margin: { l: 52, r: 24, t: 10, b: 52 },
+  xaxis: { ...axisBase, title: { text: 'Total Matches Played', font: { size: 12, color: C.muted } } },
+  yaxis: { ...axisBase, title: { text: 'Win Rate (%)', font: { size: 12, color: C.muted } }, ticksuffix: '%', range: [35, 68] },
+  shapes: [{
+    type: 'line', x0: 0, x1: 300, y0: 50, y1: 50,
+    line: { color: 'rgba(255,107,53,0.35)', dash: 'dot', width: 2 }
+  }],
+  annotations: [{
+    x: 270, y: 51.5,
+    text: '50% baseline',
+    showarrow: false,
+    font: { color: 'rgba(255,107,53,0.7)', size: 11 }
+  }]
+}, cfg);
+
+/* ══════════ CHART 3 – Toss Impact ══════════ */
+const tossTeams = [
+  'Rajasthan Royals','Delhi Capitals','Punjab Kings',
+  'Royal Challengers Bengaluru','Mumbai Indians','Kolkata Knight Riders',
+  'Lucknow Super Giants','Chennai Super Kings','Rising Pune Supergiants','Gujarat Titans'
+];
+const tossRates = [48.85,50.00,51.22,52.31,53.90,54.20,57.69,60.47,61.54,66.67];
+
+Plotly.newPlot('chart-toss', [{
+  type: 'bar', orientation: 'h',
+  y: tossTeams,
+  x: tossRates,
+  marker: {
+    color: ramp(tossRates, '#3a6090', '#ff6b35', '#00ff88'),
+    line: { color: C.navy, width: 2 }
+  },
+  text: tossRates.map(v => v.toFixed(0) + '%'),
+  textposition: 'outside',
+  textfont: { color: '#fff', size: 12, family: "'JetBrains Mono', monospace" },
+  hovertemplate: '<b>%{y}</b><br>Toss Win → Match Win: %{x:.1f}%<extra></extra>',
+  cliponaxis: false,
+}], {
+  ...layoutBase,
+  height: 340,
+  margin: { l: 210, r: 60, t: 10, b: 42 },
+  xaxis: { ...axisBase, range: [38, 78], ticksuffix: '%' },
+  yaxis: { ...axisBase, showgrid: false, tickfont: { size: 12, color: C.text } },
+  shapes: [{
+    type: 'line', x0: 50, x1: 50, y0: -0.5, y1: 9.5,
+    line: { color: 'rgba(255,107,53,0.4)', dash: 'dot', width: 2 }
+  }],
+  annotations: [{
+    x: 50.5, y: 9.2, xanchor: 'left',
+    text: '50% baseline',
+    showarrow: false,
+    font: { color: 'rgba(255,107,53,0.7)', size: 10 }
+  }]
+}, cfg);
+
+/* ══════════ PERFORMANCE TABLE ══════════ */
+const tbody = document.getElementById('perf-tbody');
+teamData.forEach((d, i) => {
+  const wrPct = d.wr;
+  let badgeClass, badgeText;
+  if (wrPct >= 53)      { badgeClass = 'badge-green'; badgeText = 'Elite'; }
+  else if (wrPct >= 49) { badgeClass = 'badge-mid';   badgeText = 'Competitive'; }
+  else                  { badgeClass = 'badge-red';   badgeText = 'Below Avg'; }
+
+  const barWidth = ((wrPct - 40) / 25 * 100).toFixed(1);
+
+  tbody.innerHTML += `
+    <tr>
+      <td class="rank">${i+1}</td>
+      <td class="team-name">${d.active ? '' : '<span style="color:var(--text-muted);font-size:11px">[D] </span>'}${d.team}</td>
+      <td class="num-cell">${d.m}</td>
+      <td class="num-cell" style="color:var(--green)">${d.w}</td>
+      <td class="num-cell" style="color:var(--red)">${d.l}</td>
+      <td class="num-cell">${wrPct.toFixed(1)}%</td>
+      <td class="bar-cell">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-muted)">${wrPct.toFixed(1)}%</div>
+        <div class="bar-bg"><div class="bar-fill" style="width:${barWidth}%"></div></div>
+      </td>
+      <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+    </tr>`;
+});
+// Legend note for [D]
+tbody.innerHTML += `<tr><td colspan="8" style="padding:10px 16px;font-size:12px;color:var(--text-muted)">[D] = Disbanded franchise</td></tr>`;
+</script>
+</body>
+</html>

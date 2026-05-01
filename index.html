@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IPL Analytics Dashboard</title>
+  <meta name="description" content="Interactive IPL Analytics Dashboard — 16 seasons, 995 matches, 17 teams."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy-deep:   #060f2a;
+      --navy-mid:    #0d1e45;
+      --navy-card:   #111f4a;
+      --orange:      #ff6b35;
+      --gold:        #ffd700;
+      --cyan:        #00d9ff;
+      --green:       #00ff88;
+      --text-bright: #f0f4ff;
+      --text-mid:    #c8d4ee;
+      --text-muted:  #7a90bb;
+      --border:      rgba(255,107,53,0.25);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: #060f2a;
+      font-family: 'Rajdhani', sans-serif;
+      color: var(--text-bright);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* noise */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ══════════════ HERO SECTION ══════════════ */
+    .hero-section {
+      position: relative;
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 60px 32px 80px;
+    }
+
+    /* Deep radial glow behind everything */
+    .hero-section::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 30%, rgba(13,32,96,0.95) 0%, transparent 70%),
+        radial-gradient(ellipse at 20% 0%, #0d2060 0%, #060f2a 55%);
+      z-index: 1;
+    }
+
+    /* ── IPL LOGO BACKGROUND BLEND ── */
+    .hero-logo-bg {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: min(700px, 90vw);
+      height: auto;
+      opacity: 0.13;
+      filter: saturate(1.4) blur(1px);
+      mix-blend-mode: screen;
+      z-index: 2;
+      pointer-events: none;
+      animation: logoPulse 6s ease-in-out infinite;
+    }
+
+    /* Vignette that fades logo edges into bg */
+    .hero-logo-vignette {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: min(760px, 95vw);
+      height: min(400px, 60vw);
+      background: radial-gradient(ellipse at center,
+        transparent 35%,
+        rgba(6,15,42,0.5) 60%,
+        rgba(6,15,42,0.95) 80%,
+        #060f2a 100%
+      );
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    /* ── WAVE SVG overlays mimicking IPL logo waves ── */
+    .wave-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      opacity: 0.18;
+    }
+
+    /* orange glow blobs */
+    .glow-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 2;
+    }
+    .glow-blob-1 {
+      width: 500px; height: 300px;
+      background: radial-gradient(ellipse, rgba(255,107,53,0.25) 0%, transparent 70%);
+      top: -80px; left: -100px;
+      animation: blobDrift1 10s ease-in-out infinite;
+    }
+    .glow-blob-2 {
+      width: 400px; height: 250px;
+      background: radial-gradient(ellipse, rgba(255,215,0,0.15) 0%, transparent 70%);
+      top: 20%; right: -80px;
+      animation: blobDrift2 13s ease-in-out infinite;
+    }
+    .glow-blob-3 {
+      width: 350px; height: 200px;
+      background: radial-gradient(ellipse, rgba(0,217,255,0.12) 0%, transparent 70%);
+      bottom: 10%; left: 10%;
+      animation: blobDrift3 9s ease-in-out infinite;
+    }
+
+    /* ── HERO CONTENT ── */
+    .hero-content {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      max-width: 800px;
+    }
+
+    /* IPL logo small — displayed inline above title */
+    .hero-logo-inline {
+      width: 180px;
+      height: auto;
+      opacity: 0;
+      filter: drop-shadow(0 0 24px rgba(255,107,53,0.6)) drop-shadow(0 0 60px rgba(255,215,0,0.3));
+      animation: fadeUp 0.7s 0.1s forwards;
+      margin-bottom: 28px;
+    }
+
+    .eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: var(--orange);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      opacity: 0;
+      animation: fadeUp 0.6s 0.3s forwards;
+    }
+
+    .hero-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(36px, 7vw, 80px);
+      font-weight: 900;
+      background: linear-gradient(110deg, var(--orange) 0%, var(--gold) 50%, #fff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 3px;
+      line-height: 1.05;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.45s forwards;
+      text-shadow: none;
+    }
+
+    .hero-sub {
+      margin-top: 18px;
+      color: var(--text-mid);
+      font-size: 18px;
+      font-weight: 500;
+      opacity: 0;
+      animation: fadeUp 0.6s 0.6s forwards;
+    }
+
+    /* ── DIVIDER LINE ── */
+    .hero-divider {
+      width: 120px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--orange), var(--gold), transparent);
+      margin: 28px auto;
+      opacity: 0;
+      animation: fadeUp 0.5s 0.75s forwards;
+    }
+
+    /* ── STAT STRIP ── */
+    .stats-strip {
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.6s 0.85s forwards;
+    }
+
+    .stat-item { text-align: center; }
+    .stat-num {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 34px;
+      font-weight: 900;
+      color: var(--gold);
+      text-shadow: 0 0 20px rgba(255,215,0,0.4);
+    }
+    .stat-label {
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* ── SCROLL CUE ── */
+    .scroll-cue {
+      position: absolute;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      opacity: 0;
+      animation: fadeUp 0.5s 1.4s forwards;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .scroll-cue span {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    .scroll-arrow {
+      width: 20px; height: 20px;
+      border-right: 2px solid var(--orange);
+      border-bottom: 2px solid var(--orange);
+      transform: rotate(45deg);
+      animation: bounceDown 1.5s ease-in-out infinite;
+    }
+
+    /* ══════════════ CARDS SECTION ══════════════ */
+    .cards-section {
+      position: relative;
+      z-index: 1;
+      background: linear-gradient(180deg, #060f2a 0%, #0a1530 100%);
+      padding: 80px 32px 100px;
+    }
+
+    .section-label {
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: var(--orange);
+      text-transform: uppercase;
+      margin-bottom: 48px;
+    }
+
+    .wrap { max-width: 1200px; margin: 0 auto; }
+
+    .pages-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+    }
+
+    .page-card {
+      background: var(--navy-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px 28px;
+      text-decoration: none;
+      color: inherit;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+    }
+
+    .page-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      border-radius: 16px 16px 0 0;
+    }
+    .page-card:nth-child(1)::before { background: linear-gradient(90deg, var(--orange), var(--gold)); }
+    .page-card:nth-child(2)::before { background: linear-gradient(90deg, var(--cyan), #0080ff); }
+    .page-card:nth-child(3)::before { background: linear-gradient(90deg, var(--green), var(--cyan)); }
+    .page-card:nth-child(4)::before { background: linear-gradient(90deg, #ff3366, var(--orange)); }
+
+    .page-card::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at 80% 20%, rgba(255,107,53,0.06) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .page-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(255,107,53,0.5);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 30px rgba(255,107,53,0.12);
+    }
+
+    .card-icon { font-size: 36px; margin-bottom: 16px; display: block; }
+
+    .card-page-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 3px;
+      color: var(--text-muted); text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 15px; font-weight: 700;
+      color: var(--text-bright);
+      margin-bottom: 12px; letter-spacing: 1px;
+    }
+
+    .card-desc {
+      font-size: 14px; color: var(--text-muted);
+      line-height: 1.6; margin-bottom: 24px;
+    }
+
+    .card-chips {
+      display: flex; flex-wrap: wrap;
+      gap: 8px; margin-bottom: 28px;
+    }
+
+    .chip {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-muted);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .card-cta {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700; font-size: 14px;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--orange);
+      transition: gap 0.2s;
+    }
+    .page-card:hover .card-cta { gap: 12px; }
+
+    /* ── FOOTER ── */
+    .footer {
+      margin-top: 60px; padding-top: 32px;
+      border-top: 1px solid rgba(255,107,53,0.12);
+      text-align: center;
+      color: var(--text-muted); font-size: 13px;
+    }
+    .footer a { color: var(--orange); text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes logoPulse {
+      0%, 100% { opacity: 0.13; transform: translate(-50%,-50%) scale(1); }
+      50%       { opacity: 0.19; transform: translate(-50%,-50%) scale(1.03); }
+    }
+    @keyframes blobDrift1 {
+      0%,100% { transform: translate(0,0) scale(1); }
+      50%     { transform: translate(40px, 30px) scale(1.1); }
+    }
+    @keyframes blobDrift2 {
+      0%,100% { transform: translate(0,0); }
+      50%     { transform: translate(-30px, 20px); }
+    }
+    @keyframes blobDrift3 {
+      0%,100% { transform: translate(0,0); }
+      50%     { transform: translate(25px, -20px); }
+    }
+    @keyframes bounceDown {
+      0%,100% { transform: rotate(45deg) translateY(0); opacity: 0.6; }
+      50%     { transform: rotate(45deg) translateY(5px); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════ HERO ══════════ -->
+  <section class="hero-section">
+
+    <!-- Ambient glow blobs -->
+    <div class="glow-blob glow-blob-1"></div>
+    <div class="glow-blob glow-blob-2"></div>
+    <div class="glow-blob glow-blob-3"></div>
+
+    <!-- Depth overlay -->
+    <div class="hero-section" style="position:absolute;inset:0;z-index:1;pointer-events:none;
+      background: radial-gradient(ellipse 90% 70% at 50% 40%, rgba(13,32,96,0.8) 0%, transparent 65%),
+                  radial-gradient(ellipse at 20% 0%, #0d2060 0%, #060f2a 55%);">
+    </div>
+
+    <!-- IPL logo blended as background watermark -->
+    <img class="hero-logo-bg" src="data:image/png;base64,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" alt=""/>
+    <!-- Edge vignette to blend logo into bg -->
+    <div class="hero-logo-vignette"></div>
+
+    <!-- Wave SVG overlay matching IPL logo colors -->
+    <svg class="wave-overlay" viewBox="0 0 1440 500" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="wg1" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#ff6b35" stop-opacity="0"/>
+          <stop offset="30%" stop-color="#ff6b35" stop-opacity="0.6"/>
+          <stop offset="70%" stop-color="#ffd700" stop-opacity="0.4"/>
+          <stop offset="100%" stop-color="#ffd700" stop-opacity="0"/>
+        </linearGradient>
+        <linearGradient id="wg2" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#00d9ff" stop-opacity="0"/>
+          <stop offset="40%" stop-color="#00d9ff" stop-opacity="0.4"/>
+          <stop offset="100%" stop-color="#00d9ff" stop-opacity="0"/>
+        </linearGradient>
+        <linearGradient id="wg3" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#00ff88" stop-opacity="0"/>
+          <stop offset="50%" stop-color="#ff6b35" stop-opacity="0.3"/>
+          <stop offset="100%" stop-color="#00ff88" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <!-- Wave 1 – orange/gold, upper -->
+      <path d="M0,180 C200,120 400,240 600,160 C800,80 1000,200 1200,140 C1350,100 1400,160 1440,150"
+            fill="none" stroke="url(#wg1)" stroke-width="2.5" opacity="0.8"/>
+      <!-- Wave 2 – cyan, mid -->
+      <path d="M0,260 C180,200 360,310 580,240 C780,175 980,300 1200,230 C1350,185 1410,250 1440,235"
+            fill="none" stroke="url(#wg2)" stroke-width="2" opacity="0.7"/>
+      <!-- Wave 3 – green/orange, lower -->
+      <path d="M0,330 C240,275 440,370 660,300 C860,235 1060,350 1280,285 C1380,260 1420,310 1440,300"
+            fill="none" stroke="url(#wg3)" stroke-width="1.5" opacity="0.6"/>
+      <!-- Wave 4 – thin gold -->
+      <path d="M0,150 C300,90 600,190 900,120 C1100,70 1300,160 1440,130"
+            fill="none" stroke="#ffd700" stroke-width="1" opacity="0.2"/>
+    </svg>
+
+    <!-- MAIN CONTENT -->
+    <div class="hero-content">
+      <!-- IPL logo inline, small, glowing -->
+      <img class="hero-logo-inline" src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCACoASwDASIAAhEBAxEB/8QAHAABAAEFAQEAAAAAAAAAAAAAAAUCAwQGBwgB/8QAWxAAAAQDAwMLDwQMDgMAAAAAAAIDBAEFBhESEwcUIRUiIzEyM0FScqGxCCQ0QkNRU2FicXOBgpHRRGOywRYlNUVUZHSSk5SisxcmJzZHVVZlhIajpNLhRnWD/8QAGwEBAAIDAQEAAAAAAAAAAAAAAAQFAQIDBgf/xAA8EQACAQMBAwkDCgYDAAAAAAAAAQIDBBEhEjFxBRNBUWGBkaGxIqLBBjJicoKSstHh8BQVIzNCo0NTk//aAAwDAQACEQMRAD8A4aAAPpiWDzgAAGQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAbRKcnddzfZWVJTpQnz7fA51LBKfwQV+l2TKGTL08ybl6DxFRU5f5MpvEq8M/WR1jQqy3RZoYDeDZJ627myZOfIQmSBuk4ippQtZS3s2lpknyEsX3xTtsGaXLvJtZ4hXi3xRl21ZLLgzXAH03gu6Jj4LSMlJZRxAAA2AAAAAAAAAAAAATlK0rN6kxNTkk02iG/vXSuE2b8s8eHxFtiN0luTmjXPWymVGUqO1NwRAidy93oRiprxS3vL9lZT2Kkm31RTljjhNLvJNvZ1rjWC8Wl6nLwG1V5Q8ypJZPOVE3rRQ9wjkhIl13ePDtI+uPnGqiytbqldUlVovKZpXt6tvPYqxwwAAJBxAAAAAAAYbwAFQqwvBjXJo6iW8tgADLeDdPIFSaaqq2EmliKcQglG8qSbI5zOXObJ9oiTfj+rgGaxmEyc4jKmZbmyfbnIS8t7akdoQK19hPm1nHS3hfqTadpn57x2LV+H6lhvS83wc5e5tLUOO9VglzbfMLpZVTaXZtUYnkNWRzftx0ApJmya2JPqkbJr9uQlrlbzRs2ohndGtt7lE2mXp3EEP3euFVK5r1d05NfQikvGROjRo03rCK+tLXwQMSifwmo1OQkgXpFOFRKny2fp+nSRN9AXE6glO9MqNlvtqqL9MRf1TVV/8JlP6kp8QTrLe5rjOJ3iqL3KH3JGJqPJFewqpbch01Olz6YChxS83TRzlumnMkPDMlYK9GnmGS4fS35bRKSfoHCyQst1aXxsRu5nUpX45DwVIT1wsOOsLm5h0t8VF/heTErW1nvSXBuP4ljzIJRNRJbDUSUTU4hyfUKRvCZ3z1HCTmUpqNPtEXRMJz6rdMPPaMBxJZbixxZZUbE/CiRrBYsPMezTASocpxX9xYf768M5z5Em9aUsrt/NZRss6pOqXK38b8q0gbYm7Re1Cdc/6OFsBCGpCgG3ZOVGW4n4rIHC/wC3CIvqNMkDLfJ3Wsy/ImSCBP8AV0ik0zySpb3SVUPfy2bkS9+FAeRpO5SxDnEvo0oQXvakN7LeHjvk36FjUHJd/bt6p/l5QvTEZ8v+xtjh6i5WptLcPtNSnRSeu4ezmGAap8nie95N0/8A71I4+AFqqklex8mUtU5E1cGG86NzNe2qrX0nRO9OdOL0ce7a+BtZnmq6OHNakoarE/7wtYufMRSELYCPnmTLOUc9kOI2/EnSpFSH9GsSMf2rIiNLMJa53vJLiegcOvgL7EySa2IyyZ1HLVOO1fuy9JNIgxheWktu2k4vqfN4fFKSXgkWkHQuFs1o5XZtZ8XH1Zoz5o5YvFGz1so2XT3ZDjHHWzYU7w2M6pubeQs6KTYvbhZGA1maULvikuc7H2iK5Nf5rYD1Fl8pKUsQuVsS8U+D18yDc8g1VHnLd7UfBmlAJF5JZu27JYqbJxNd0CPMPQ07inUWYST7ylqUp03icWj4A+lF9No5V7l+eN9tHNvBYMNyldFy1XDfPa7pPU1O6quQjpxjETthoiSCEbp9NnD7Q1QyGEKVlOs827nfvn8s21D3QjH86I4VozmsQlg0hNZ3ZOlVRL6S1BZTKazurHsp1xJcjK5AdswvWR0JqOrIRjt3o2RNGyN68LNXURLZTk+ZVYnFxMpdMsRu1ckKmgTHgfWmOSNp4wiSCsLmiNqcYm3Q9D0YollVyEy6UqylumxcMisljpmT63USjBO0hDQjdjCJL5duJdaOS9Vk+bSRWncmcmlqrKTSZoVwnfLHZjxhEsLIx3VkL1sdNsVI94w8/Z15yrKgsp5eeC4JallUppQ2+joNGpucqzeg5zJJipiZo3vtTn12tsjGEPVEsLPP4hoImpGvmMnnLnw6RWpPLMfb90NI3zqc8msgylzGcspy9mTLMG6CqOZHTLevxUge28Q3eLzi1p83Zc7PGI5T04fmSr6rK4oW8XrPD8M6eRykB3bK9kepOiqpomUs5jOnBKhmWaujrKo3kksRIsYksThZHZe2t2hvNQ9ThkykEneTqc1RVDZk0JirrYqBrhe/ZBCMRh8s26jGTzru0K5WtRtrqPKAD1DLup0oCqacJNaNrqbOEV72A5Pgro2wjZGESQISOiPBbAavklyGSyeVTVtL1a+mLeY08s2uRl6pCkVTVgeJT7InG2EYEhH1jP8AObbZb107NQ7arlLG84OUozptJplKcPVFio2x71y/Zr7Nva4dMNG60wHTOqGyeyTJXPadjTsymqi7gizg53p0z4Rkzp4ZiXSF4Ym3Vu1Ac6n1QvZszZNnCTZNBoS4gRAkSkuwhYWGmMdEIaIQ7W0SaNw68Y1KfzX17zlOm4ZUt5FlMLyfze7FsVFwhIe4iTeDNTwnK2bOGyuJ2hybv1w4RlZspKMPN22cu1NwtcvES80OOKmZXKSKaSfXOv1+vu3C9MBlyvYtikOGpsuz3zx5vFt6fEKm6rOPDq6Cysqak+0wVEmzHrmdKqPXamvzYh+2+cPweYZRSzubs+5ymW8vAR+JxcK2bJYjmQttUl8W5rz3sLvRgSO35xafNNmxamneyeBQ2VYni7xBC52NTXp7Vl90d3ey2dKVPPV2PC75b+5GOUlLsuyXL2bKcRAmEj746Y+coyWc87lIaSluJ5bc7w/viKGsxlqS2FJqXzlfjurVz/mQ0QEzcyiOUe6S1py02xCfWONdr/l9+ePdib0V/wBfuxz70ipNfKa53ts5bJ8TN0UOmEBbUa5RPlMyUT5b9MvRERrqQqKfdWspTyDvzrn6Bjai02lvlWpqciWqG+sYpqk17Kj3U2/Nndyqr52331EvImypV0l9/wBP9dTN0ioxa7+UNmUyT8vAN8BAan0l/X739Qj9cQMxpL+u3v6h/wBjsqS6v9bRmNWS3y/2p+qJJ02c4P2xoT22V8vMS2AtleskIYaU3qZiWG0iayN3zeIY6JJQl2FWT1t/hVi9ERmwfPu5Vs1ucGKlG9z2jaUX+1L9STTrJbmvGD800bGpMJ38nyAylP09POl+kXE5vlI+RZIZSy9BRyhem0V4DlXsfqh8T0798h0xGKtKKgU/p1kCnLql19cB45K3ekow+0qz9Si9roz4xJAs1y2K9j02oy9BI0UvpkA38Pym+apJp/4RL4CEcU9MleycsdLqf5hWN0wEe4pCSffHKbIFOQRZz9WkSKcbbOipd1KcvU7xlU6XL70UTrxnlR++tbMpb6eeES/diJdJKJfdHKqmp+SvXDnoGDqNQDbsisXr38ilB0udSIsrPKAbI9bSSdTJT8ddEQ/dCxo0W37EW+FFR85m7qYXtNd82/JB0rTaW+VBP5lyCYRP9SNonZa7VmTNTNpIomom3KkRZ6eJiOE7dweNmmPvEQxmE7e/zdpZkyT7RYje8f8ASKa0Y8yQ2bEqKoFHKifyVqrinvfQJEd6trGqtmW/jl+EVjxJVvcype1HdwwvGTz5GyLPtmU2RRzhqlIciBLx0tGm3vw9Qxni/wCEJJ4l+5rCRN5re8MNq+czdFRVklqaond69OSBsUsNFh4xhti2Y3Xj1sy6yd6066x0tYfzaY2DjQtublhrDRKuLnnKeU8phQ/g0k/LOQ8NYYRDp33TF2Pca8m7MMt4VLZE8NRsmnrzrE1t8RrpRyrveGon+d/3aPSWsMnkbx5ZiKGU+bGOLxvR4YtmFpFaEOCOqZA8r7rJ7MtTZgmo9pt2tfXRITZWp42QxU+/ohC0nDZehp3XorLtJqdr7JPB8m6SOdQhHUkdpkiY6qpy2ppkhCF6MFIaIw8dvajw+PZHUjPW8/ydN3D1KKj6QuDy1BQ+0klcKeESw2oRjBSw0duNnFsHn+WbZUJRuqejzqWllU2/6U9UeT6qYvpJMlKbmLZRsvLTmIuiezfIwhGMdHBGFlnis747X1Dp/wCPlQk40sLH3Kw/5DoXVb5PkJ/RylYS5slqvJiX1lNzFVrC3ELGPkWxPDvWG74571ESSieUGocRLDUTllw/KxofAZqXcbnk6ctzW/jlG0oyV0s9xs3VcH/lOyWfNvlD/wC4afAdT6oUp1MilWJJwvqanmsh64DlXVdl/lOyYfOO1Cf7hp8R1/LfMZjKMktSzKVOVGz5qxMqgsnuiGhZpgKiWVTt8b9fxEhfOqfvoNT6kuRTKQZJSQnDZVko7equiIrFiU5E4wIWFsI7Vt2JvWMfI9UzKqMueUd7LDpqsE28taoqkNaVbCx4RPDxXomhCPDCEIjyzPspFfVBLcynVWzZy1Pu0cWCRDl7x4Jwhfh4jWjsvUKl+31ZR7zdlzmX+AsLvk6dKlVr1WsvoXa0cKNwpSjCO4w+rlNbWtPJ/wB2Kc6n/Q89D0H1cf8APanv/WH/AHkR5+KLjkh4s4d/qQ7v+7IqLtC+39LsnaChMVlXwt7E56orK21J4iiWZoeD2PE151kDdt3hLFSxEdkxE0Nach0L5Vjm4bYWaRq+qrnueGn7HxF1GfTJPuif6KAqrmzrVNY4Liyrwo42zbzFU3zOU5b1wW4toNi28CkIwhpGI4ljZLEcyqm85XxjEOR1bcIbvwJtHh6xHsatUSW65Yp7juG75xPy2fSR7h9c4a+uuIrniUh7eCMdqMB5q4oXto9tweOzPw1PWUK9ldLYUlnt09dCPWLVO9OZ3LZKh4HOCIXPNc084i3Esp9RbFmtZZyp8w1UX/bjEbJMKXYtlvtdSzZ6nc/rU6Wu71kRjamPU97ybtv1qKvREbW99Tms03jhsLzbbONxZTi8TWeO214LCIIyVEtvlM/c8hJFLpDPqNS3uSTJz6d7Av0ICXU1bT3vJ3LUv8AdX6xQVzVKe90cybciSixhV298m+NRfAjOio7opcKbfqQxpzTaW90sn7cyUH0s5lqu90k2/WFDCaK5r/uctUT5DJMvTAfP5SFd8zlP20Eh22oda/8ARs2jGotyl3Ul8SNK8xd7olt+iWF685/sKl+iUF1whVPy2pGzblzK79AY2Ep3WtkL/DY4UPzjonHoa8Zs7JVFvT71TXqb/PJY5ZI/xi6n1PD8NJXS6RPPDBvwhAas4mWSnGw3tJVRKV+IhMiGufpYQGwLISCn3mbN6gr7Jg+v6xs9IouzObhw4pRhE8PGa2AmEXeVV7scmruk61Q8DitTLe2RUkIw948HQunCKbk4r69SC7m9uPvFRKGW1jyT/JmgGNkl8FX357IW8fJclvbGtVPTqtS/QgNrmn8JDb7q5IKcc8c/2PQX50jxEKpN5+l/RBTif+WF/iLijXlUXszk+FeP6MbKWjS+4yLWnVANuxqJcufLezc5ffAkLBdY1DMnP82aNlLbiHasIrn/AD42iSRnldb1LqEZMlPxKm4lue+EQfNsq0yR+2Ll6yQ467hNmQnngSyPMJKVLP8AU2ft1ZS8loSYbX+OfswS8yLmkvql7stTTtJkhxHTiBb/AJkya2IijLyBj2E2Umy/HX2JH1E24+0Lq0okjHZZrUiblTiS8mOc5vSR0ClGZ4S2bUzKMNTwx9nc/AnQLWjrD2dV2LYj472cpaPMtH2val3JaB4g+copuaic5kh2ja5rz8gnB5zC8m81SZqJuE8OWp7g+LG+Sza09vHxDGWaJMllHM+c5y7/AAYh7x/bPweYR0wfKvfm0E9wiTcEEulQ57GNy6dyXDpfE41a/Mp56eje3x6uCJJ4qokj1umm5lty5xvfwwiI1QrZTsdTD8g/xFpuuq22VNTDF0yqam+JYSnkfAWUKPNlVUqbbyWlDKCyL10W1BITOSRSPcvU6ZPHNC5PlGU5im4fTJzni6MC3iN9YSEE9O3GF2Fse/HxWjy9kEfUvKavTndTNknKjFwhmpF3qLYiV+J8RxHFiWCkU7E7CXrddaWEbmjY8qOXuf1RqzKJViy6TLnwmp0T4S2BehbiaLYxPZtFiS6U0Sxv7Yo+UoV7uf8AD01ot7J9tKFJc5J6m7dUJl1TSMrR9CRbObl5F7MN0kQ1kYYaUNyezhia0mi7dNwaD1NOUOmqBns+mNTqPb79FIiJ0UoqnOaBzmUieNvjLzjkJSj4JlPkqjCg6PXvfSznK4nKop9R3/LVlVoqtawoGbS5SY4EimecPcZrd2LEQUjd06Y7DteMbhlKy+5PKjyfVDT7JSa50/li7dC+zukxDpxgS2NuiFtg8oANP5NQxFZfs7vHPUZ/iZ5b6z6Udm6mbKVS+Tj7IVKiz2K8yzYqOaoYutTxbbdMLN2OMAJ1zbQuabpz3M5U5unJSR6brjKxkIrp02c1PS9RPlWhDERPcwrpYxtjDY14WjlOWecZOJlqEnk3kikpQQKvnt9vdOqY+Hh2xtMY9l1Th0W+Mc6ARbfkynQknGT06M6G1StKosNIXgABYpYOKWAAAMmQAAMNZBLSWoJlLdiTVzlp27ZfXEOXveIbjLzUbP0esm2pr7wKDrNjn9H3M/MOcAKS/wCQ6FzLnINwn1r4rc/XtLWy5XrWy2JLbj1P4PejeJozZMlsNxUlUSVTiPW5ze46cbI+yMXNcXe8oaanLVXS6REy2p52xRzZN6oqh4FexUl3vWH2ockZOr0oc/dGkmWJx2Sp23NC0Qo2F3R0ftLrWz6NZJ7vrSrqvZ7HtLzTx5F1SWKKb5W0tU5b1Q31CwpI5T8oqmW+wkdUMejVfvbOk+Q4TN0j5i0b+DT9Tlqo/UJMI1l0S+7E0lKi+mH35FOa0slvk2eufQNcL6Y+RWpQugsomCsOMq6gQ0fUWFg+6pU+l2NTeJ5bp0c3NDQH2RLl0IS+TIE4CQa7Q7qnVl0SfFpehpz1vDpguEXLzbJOQ5SKtlDPU1SZJzaW9vL5ulB4icve1+mEPEWMIDJWnWTOd/dqiXslX8NInsDE8+AtrCQ8RRo4DSt8nrGpLbhFwk+mLcfTR96ZTxuKi0byu06Gzl8g3umcrTmWp9oi9buGdz2yRucwyU2ddfIsrUpe8iqVDcxxzMBCfyennKqp/WhB+aSZIjepb4+DaOivJNX6nZtftsPy6kjc6RDPKaY77Oq7kCinHQVO8PzQGpXR9EijyRXp7qqX1YRX5m0r6m1hwb4yf6GwrfYay3vVKdKeX1sj/wAxjPKgcqo5sySSlqHEaku++O3EQ4Cyp8n04vaqNzfa8+W44u9qNbMEors/PeAABOSwRQAAMmGsgAABgAAAZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/2Q==" alt="IPL Logo"/>
+
+      <p class="eyebrow">Data Analytics · Season 2009 – 2026</p>
+
+      <h1 class="hero-title">IPL Analytics<br/>Dashboard</h1>
+
+      <p class="hero-sub">16 seasons of cricket decoded through interactive data visualisation</p>
+
+      <div class="hero-divider"></div>
+
+      <div class="stats-strip">
+        <div class="stat-item">
+          <div class="stat-num">995</div>
+          <div class="stat-label">Matches</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">16</div>
+          <div class="stat-label">Seasons</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">17</div>
+          <div class="stat-label">Teams</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">+71</div>
+          <div class="stat-label">Runs / Match Growth</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scroll cue -->
+    <div class="scroll-cue">
+      <span>Explore</span>
+      <div class="scroll-arrow"></div>
+    </div>
+
+  </section>
+
+  <!-- ══════════ CARDS SECTION ══════════ -->
+  <section class="cards-section">
+    <div class="wrap">
+      <p class="section-label">— Select a Dashboard —</p>
+      <div class="pages-grid">
+
+        <a class="page-card" href="Page1_Executive_Overview.html">
+          <span class="card-icon">📊</span>
+          <div class="card-page-num">Page 01</div>
+          <div class="card-title">Executive Overview</div>
+          <div class="card-desc">High-level KPIs, season-by-season scoring evolution, match volume trends, and a complete dataset summary table.</div>
+          <div class="card-chips">
+            <span class="chip">KPI Cards</span>
+            <span class="chip">Line Chart</span>
+            <span class="chip">Bar Chart</span>
+            <span class="chip">Data Table</span>
+          </div>
+          <div class="card-cta">Open Dashboard →</div>
+        </a>
+
+        <a class="page-card" href="Page2_Team_Performance.html">
+          <span class="card-icon">🏆</span>
+          <div class="card-page-num">Page 02</div>
+          <div class="card-title">Team Performance</div>
+          <div class="card-desc">Win rates, head-to-head rivalry records, toss conversion analysis, and franchise consistency across all 17 IPL teams.</div>
+          <div class="card-chips">
+            <span class="chip">Win Rate</span>
+            <span class="chip">H2H Matrix</span>
+            <span class="chip">Toss Stats</span>
+            <span class="chip">Rankings</span>
+          </div>
+          <div class="card-cta">Open Dashboard →</div>
+        </a>
+
+        <a class="page-card" href="Page3_Venue_Insights.html">
+          <span class="card-icon">🏟️</span>
+          <div class="card-page-num">Page 03</div>
+          <div class="card-title">Venue & Match Insights</div>
+          <div class="card-desc">Stadium scoring profiles, thriller-rate analysis, venue impact scores, and ground-by-ground breakdowns across all IPL venues.</div>
+          <div class="card-chips">
+            <span class="chip">Stadium Profiles</span>
+            <span class="chip">Thriller Rate</span>
+            <span class="chip">Avg Runs</span>
+            <span class="chip">Impact Score</span>
+          </div>
+          <div class="card-cta">Open Dashboard →</div>
+        </a>
+
+        <a class="page-card" href="Page4_Trends_Insights.html">
+          <span class="card-icon">📈</span>
+          <div class="card-page-num">Page 04</div>
+          <div class="card-title">Trends & Strategic Insights</div>
+          <div class="card-desc">Temporal scoring inflation, field-first vs bat-first win percentages, toss-to-win correlation, and thriller frequency over time.</div>
+          <div class="card-chips">
+            <span class="chip">Scoring Trends</span>
+            <span class="chip">Strategy Analysis</span>
+            <span class="chip">Toss Impact</span>
+            <span class="chip">Temporal</span>
+          </div>
+          <div class="card-cta">Open Dashboard →</div>
+        </a>
+
+      </div>
+
+      
+    </div>
+  </section>
+
+</body>
+</html>
