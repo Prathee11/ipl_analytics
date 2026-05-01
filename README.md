@@ -7,47 +7,34 @@
 
 # 🏏 IPL Analytics Dashboard
 
-### _16 Seasons · 995 Matches · 17 Teams · One Dashboard_
+An interactive, multi-page data analytics dashboard built to explore 16 seasons of Indian Premier League cricket (2009–2026). This project transforms raw match data into meaningful visual insights using Plotly.js, covering team performance, venue dynamics, scoring trends, and strategic patterns across 995 matches and 17 franchises.
 
-[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Visit_Dashboard-ff6b35?style=for-the-badge&labelColor=060f2a)](https://YOUR_USERNAME.github.io/ipl-analytics/)
-[![GitHub Stars](https://img.shields.io/github/stars/YOUR_USERNAME/ipl-analytics?style=for-the-badge&color=ffd700&labelColor=060f2a&logo=github)](https://github.com/YOUR_USERNAME/ipl-analytics/stargazers)
-[![License](https://img.shields.io/badge/License-MIT-00d9ff?style=for-the-badge&labelColor=060f2a)](LICENSE)
-[![Made With](https://img.shields.io/badge/Made_With-HTML_·_Plotly.js_·_Python-00ff88?style=for-the-badge&labelColor=060f2a)](#tech-stack)
-
-<br/>
-
-> A **data-driven, multi-page interactive analytics platform** for the Indian Premier League (2009–2026).  
-> Built for analysts, fans, and anyone who wants to understand cricket through clean, beautiful data.
-
-<br/>
 
 </div>
 
 ---
 
-## 📸 Dashboard Preview
+## Overview
+The IPL Analytics Dashboard is a fully client-side web application — no backend, no database, no installation required. It runs entirely in the browser and is structured across four dedicated pages, each focusing on a distinct analytical dimension of IPL data. The project was built to demonstrate end-to-end data storytelling: from raw dataset to polished, interactive visualisation.
 
-| Page | Description |
-|------|-------------|
-| ![Executive Overview](assets/screenshots/page1-thumb.png) | **Executive Overview** — KPIs, season scoring evolution, match density heatmap |
-| ![Team Performance](assets/screenshots/page2-thumb.png) | **Team Performance** — Win rates, head-to-head records, toss conversion |
-| ![Venue Insights](assets/screenshots/page3-thumb.png) | **Venue & Match Insights** — Stadium scoring profiles, thriller rates |
-| ![Trends](assets/screenshots/page4-thumb.png) | **Trends & Strategic Insights** — Temporal patterns, field-first vs bat-first |
-
-> 📌 **Add your own screenshots** to `assets/screenshots/` using the filenames above.
+Page 1 — Executive Overview
+A high-level summary of the entire dataset. Includes key performance indicators, season-by-season scoring evolution from 2009 to 2026, match volume trends, and a complete data audit table highlighting major milestones across IPL history.
+Page 2 — Team Performance
+A deep dive into franchise-level statistics. Covers win rates for all 17 teams, head-to-head rivalry records, toss conversion analysis, and consistency metrics that distinguish dominant teams from inconsistent ones.
+Page 3 — Venue and Match Insights
+A ground-by-ground breakdown of every IPL venue. Analyses average runs scored, thriller rates (matches decided in the final over or by fewer than 10 runs), venue impact scores, and how different stadiums influence match outcomes.
+Page 4 — Trends and Strategic Insights
+A temporal and tactical analysis of how the IPL has evolved. Tracks scoring inflation over 16 seasons, the strategic shift from bat-first to field-first decisions, toss-to-win correlation, and the frequency of high-pressure finishes over time.
 
 ---
 
-## ✨ Features
+## Key Findings
 
-- 🎯 **4 Dedicated Dashboard Pages** — each with a unique analytical focus
-- 📊 **15+ Interactive Plotly Charts** — hover, zoom, filter, download
-- ⚡ **Zero Backend Required** — pure HTML/CSS/JS, runs in any browser
-- 🌓 **Cinematic Dark Theme** — deep navy + orange/gold IPL palette
-- 📱 **Responsive Design** — works on desktop and tablet
-- 🔢 **995 Matches Covered** — complete IPL dataset 2009–2026
-- 🏆 **17 Teams Tracked** — active and disbanded franchises
-
+Average runs per match increased by 71 runs between 2009 and 2026, rising from 286 to 357
+Teams winning the toss convert it into a match win approximately 52% of the time, suggesting minimal tactical advantage
+The field-first strategy has become the dominant choice post-2016, with over 60% of toss winners opting to chase
+Wankhede Stadium (Mumbai) and M. Chinnaswamy Stadium (Bengaluru) consistently produce the highest-scoring matches
+Thriller matches peaked in the 2016 and 2023 seasons
 ---
 
 ## 📁 Project Structure
@@ -86,7 +73,7 @@ ipl-analytics/
 ## 🚀 Quick Start
 
 ### Option 1: View Live (Recommended)
-Click **[Live Demo](https://YOUR_USERNAME.github.io/ipl-analytics/)** — no setup needed.
+Click **[Live Demo](https://Prathee11.github.io/ipl-analytics/)** — no setup needed.
 
 ### Option 2: Run Locally
 ```bash
@@ -105,60 +92,6 @@ python -m http.server 8000            # Python
 ```
 Then visit `http://localhost:8000`
 
----
-
-## 🛠️ Tech Stack
-
-| Technology | Purpose |
-|---|---|
-| **HTML5 / CSS3** | Structure & styling, no frameworks needed |
-| **Plotly.js v2.35** | All interactive charts and visualizations |
-| **Vanilla JavaScript** | Data processing, chart configuration |
-| **Orbitron + Rajdhani + JetBrains Mono** | Custom Google Fonts |
-| **CSS Custom Properties** | Design token system |
-| **GitHub Pages** | Zero-cost static hosting |
-
----
-
-## 📊 What's Inside Each Page
-
-### Page 1 — Executive Overview
-- **KPI Cards**: Total matches, avg runs/match, best win rate, thriller count
-- **Season Scoring Evolution**: Line chart tracking avg runs 2009–2026
-- **Match Volume Trend**: Bars showing matches per season
-- **Summary Table**: Full dataset audit with key milestones
-
-### Page 2 — Team Performance
-- **Win Rate Leaderboard**: All 17 teams ranked
-- **Head-to-Head Matrix**: Interactive rivalry grid
-- **Toss Conversion Analysis**: Which teams capitalise on the toss
-- **Consistency vs Peak Performance**: Scatter analysis
-
-### Page 3 — Venue & Match Insights
-- **Highest Scoring Venues**: Stadium-level run profiles
-- **Thriller Rate Map**: % of close-finish matches by ground
-- **Avg Runs by Venue**: Comparative bar breakdown
-- **Venue Impact Score**: Composite stadium ranking
-
-### Page 4 — Trends & Strategic Insights
-- **Scoring Inflation Over Decades**: IPL run-rate evolution
-- **Field-First vs Bat-First Win %**: Strategy shift analysis
-- **Toss → Win Correlation**: Does the toss actually matter?
-- **Season-wise Thriller Frequency**: When were the most nail-biters?
-
----
-
-## 🔑 Key Findings
-
-> These are the insights the dashboard was built to surface:
-
-- 📈 **+71 runs** average per match since 2009 (286 → 357)
-- 🏟️ Wankhede and Chinnaswamy produce the **highest scoring matches**
-- 🎯 Toss-to-win conversion: ~**52%** across all seasons — marginal advantage
-- ⚡ **Thriller matches** (decided by <10 runs or last over) peaked in 2016 & 2023
-- 🏆 **Mumbai Indians** holds the highest multi-season win rate among active teams
-
----
 
 ## 🗂️ Data Sources
 
@@ -194,10 +127,10 @@ Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for details.
 
 <div align="center">
 
-**Made with ❤️ and a lot of cricket data**
+**Made with ❤️  **
 
 ⭐ Star this repo if you found it useful — it helps others discover it!
 
-[![Follow](https://img.shields.io/github/followers/YOUR_USERNAME?style=social)](https://github.com/YOUR_USERNAME)
+
 
 </div>
