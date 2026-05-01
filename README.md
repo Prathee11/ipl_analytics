@@ -17,24 +17,26 @@ An interactive, multi-page data analytics dashboard built to explore 16 seasons 
 ## Overview
 The IPL Analytics Dashboard is a fully client-side web application — no backend, no database, no installation required. It runs entirely in the browser and is structured across four dedicated pages, each focusing on a distinct analytical dimension of IPL data. The project was built to demonstrate end-to-end data storytelling: from raw dataset to polished, interactive visualisation.
 
-Page 1 — Executive Overview
+## Page 1 — Executive Overview
 A high-level summary of the entire dataset. Includes key performance indicators, season-by-season scoring evolution from 2009 to 2026, match volume trends, and a complete data audit table highlighting major milestones across IPL history.
-Page 2 — Team Performance
+
+## Page 2 — Team Performance
 A deep dive into franchise-level statistics. Covers win rates for all 17 teams, head-to-head rivalry records, toss conversion analysis, and consistency metrics that distinguish dominant teams from inconsistent ones.
-Page 3 — Venue and Match Insights
+
+## Page 3 — Venue and Match Insights
 A ground-by-ground breakdown of every IPL venue. Analyses average runs scored, thriller rates (matches decided in the final over or by fewer than 10 runs), venue impact scores, and how different stadiums influence match outcomes.
-Page 4 — Trends and Strategic Insights
+
+## Page 4 — Trends and Strategic Insights
 A temporal and tactical analysis of how the IPL has evolved. Tracks scoring inflation over 16 seasons, the strategic shift from bat-first to field-first decisions, toss-to-win correlation, and the frequency of high-pressure finishes over time.
 
 ---
 
 ## Key Findings
-
-Average runs per match increased by 71 runs between 2009 and 2026, rising from 286 to 357
-Teams winning the toss convert it into a match win approximately 52% of the time, suggesting minimal tactical advantage
-The field-first strategy has become the dominant choice post-2016, with over 60% of toss winners opting to chase
-Wankhede Stadium (Mumbai) and M. Chinnaswamy Stadium (Bengaluru) consistently produce the highest-scoring matches
-Thriller matches peaked in the 2016 and 2023 seasons
+📈 Scoring Surge: Average runs per match increased by 71 runs (from 286 in 2009 to 357 in 2026), highlighting a clear shift toward aggressive batting.
+🪙 Toss Impact: Teams convert toss wins into match victories only about 52% of the time, indicating minimal strategic advantage.
+🎯 Chasing Trend: Since 2016, the field-first strategy dominates, with 60%+ of captains opting to chase.
+🏟️ High-Scoring Venues: Wankhede Stadium and M. Chinnaswamy Stadium consistently produce high-scoring matches.
+🔥 Thriller Peaks: Close matches (thrillers) peaked during the 2016 and 2023 seasons, indicating periods of heightened competitiveness.
 ---
 
 ## 📁 Project Structure
