@@ -26,6 +26,25 @@ A ground-by-ground breakdown of every IPL venue. Analyses average runs scored, t
 A temporal and tactical analysis of how the IPL has evolved. Tracks scoring inflation over 16 seasons, the strategic shift from bat-first to field-first decisions, toss-to-win correlation, and the frequency of high-pressure finishes over time.
 
 ---
+
+## Data Pipeline
+
+The dashboard is backed by a 3-stage Python data pipeline built in Google Colab.
+
+**Stage 1 — Cleaning and Aggregation** 
+Loads raw ball-by-ball IPL data, extracts match-level metadata, calculates innings scores,
+handles missing values, standardises team names across all franchise variations
+(e.g. Delhi Daredevils → Delhi Capitals), and exports a clean match-level dataset.
+
+**Stage 2 — Getting Insights** 
+Performs team performance analysis (win rates, run differentials, toss conversion),
+venue-level scoring breakdowns, seasonal trends, and close-match detection.
+Exports structured CSV files used by the dashboard.
+
+**Stage 3 — Dashboard** 
+Builds all Plotly visualisations from the cleaned data and exports the final
+interactive HTML pages that make up this dashboard.
+
 ## Key Findings
 <div class="key-findings">
   <p>📈 <b>Scoring Surge:</b> Average runs per match increased by 71 runs (from 286 in 2009 to 357 in 2026), highlighting a clear shift toward aggressive batting.</p>
@@ -52,8 +71,10 @@ ipl-analytics/
 ├── 📄 Page3_Venue_Insights.html       # Stadium profiles · Scoring maps
 ├── 📄 Page4_Trends_Insights.html      # Temporal trends · Strategy patterns
 │
-├── 📂 assets/
-│   └── 📂 screenshots/               # Preview images for README
+├── 📂 notebooks/
+│   └── 📂 Getting Insights
+    ──  📂 Data Cleaning
+    ──  📂 Dashboard
 │
 ├── 📂 docs/
 │   ├── DATA_SOURCES.md               # Dataset origin & structure
@@ -109,6 +130,18 @@ Then visit `http://localhost:8000`
 > Full details in [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md)
 
 ---
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Data Processing | Python, Pandas, NumPy |
+| Visualisation | Plotly, Matplotlib, Seaborn |
+| Development Environment | Google Colab |
+| Frontend | HTML5, CSS3, JavaScript |
+| Charts (Dashboard) | Plotly.js |
+| Deployment | GitHub Pages |
+| Version Control | Git, GitHub |
+
 
 ## 🤝 Contributing
 
