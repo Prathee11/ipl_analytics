@@ -31,12 +31,19 @@ A temporal and tactical analysis of how the IPL has evolved. Tracks scoring infl
 
 ---
 
-## Key Findings
-📈 Scoring Surge: Average runs per match increased by 71 runs (from 286 in 2009 to 357 in 2026), highlighting a clear shift toward aggressive batting.
-🪙 Toss Impact: Teams convert toss wins into match victories only about 52% of the time, indicating minimal strategic advantage.
-🎯 Chasing Trend: Since 2016, the field-first strategy dominates, with 60%+ of captains opting to chase.
-🏟️ High-Scoring Venues: Wankhede Stadium and M. Chinnaswamy Stadium consistently produce high-scoring matches.
-🔥 Thriller Peaks: Close matches (thrillers) peaked during the 2016 and 2023 seasons, indicating periods of heightened competitiveness.
+<div class="key-findings">
+
+  <p>📈 <b>Scoring Surge:</b> Average runs per match increased by 71 runs (from 286 in 2009 to 357 in 2026), highlighting a clear shift toward aggressive batting.</p>
+
+  <p>🪙 <b>Toss Impact:</b> Teams convert toss wins into match victories only about 52% of the time, indicating minimal strategic advantage.</p>
+
+  <p>🎯 <b>Chasing Trend:</b> Since 2016, the field-first strategy dominates, with 60%+ of captains opting to chase.</p>
+
+  <p>🏟️ <b>High-Scoring Venues:</b> Wankhede Stadium and M. Chinnaswamy Stadium consistently produce high-scoring matches.</p>
+
+  <p>🔥 <b>Thriller Peaks:</b> Close matches (thrillers) peaked during the 2016 and 2023 seasons, indicating periods of heightened competitiveness.</p>
+
+</div>
 ---
 
 ## 📁 Project Structure
