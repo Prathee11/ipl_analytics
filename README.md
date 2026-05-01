@@ -2,7 +2,7 @@
 
 # 🏏 IPL Analytics Dashboard
 
-An interactive, multi-page data analytics dashboard built to explore 16 seasons of Indian Premier League cricket (2009–2026). This project transforms raw match data into meaningful visual insights using Plotly.js, covering team performance, venue dynamics, scoring trends, and strategic patterns across 995 matches and 17 franchises.
+An interactive, multi-page data analytics dashboard built to explore 16 seasons of Indian Premier League cricket (2009–2026). This project transforms raw match data into meaningful visual insights, covering team performance, venue dynamics, scoring trends, and strategic patterns across 995 matches and 17 franchises.
 
 
 </div>
