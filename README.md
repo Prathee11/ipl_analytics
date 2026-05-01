@@ -30,7 +30,7 @@ A ground-by-ground breakdown of every IPL venue. Analyses average runs scored, t
 A temporal and tactical analysis of how the IPL has evolved. Tracks scoring inflation over 16 seasons, the strategic shift from bat-first to field-first decisions, toss-to-win correlation, and the frequency of high-pressure finishes over time.
 
 ---
-
+## Key Findings
 <div class="key-findings">
 
   <p>📈 <b>Scoring Surge:</b> Average runs per match increased by 71 runs (from 286 in 2009 to 357 in 2026), highlighting a clear shift toward aggressive batting.</p>
